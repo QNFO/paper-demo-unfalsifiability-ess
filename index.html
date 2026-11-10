@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why testable science can die out: interactive demo</title>
+<meta name="description" content="Interactive companion to the paper: set the reward for correct predictions and watch whether falsifiable research survives in a population of researchers.">
+<style>
+:root{color-scheme:light dark;--bg:#fff;--fg:#1a1a1f;--mut:#555560;--card:#f4f5f8;--line:#d5d7de;--acc:#1d4ed8;--onacc:#fff;--good:#0a6b3a;--warn:#8a5a00;--bad:#b42318}
+@media(prefers-color-scheme:dark){:root{--bg:#14151a;--fg:#ececf1;--mut:#a4a6b3;--card:#1e2028;--line:#383b47;--acc:#8ab4ff;--onacc:#0b1020;--good:#5fd391;--warn:#f0b64d;--bad:#ff8a80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+main,header{max-width:860px;margin:0 auto;padding:0 16px}
+header{padding-top:20px}
+a{color:var(--acc)}
+h1{font-size:1.6rem;line-height:1.25;margin:.4rem 0}
+h2{font-size:1.2rem;margin:0 0 .4rem}
+.lead{color:var(--mut);margin:.2rem 0 1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:0 14px;cursor:pointer}
+button[aria-pressed=true]{background:var(--acc);color:var(--onacc);border-color:var(--acc);font-weight:600}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+label{display:block;font-weight:600;margin-top:12px}
+label small{font-weight:400;color:var(--mut)}
+input[type=range]{width:100%;min-height:44px;accent-color:var(--acc)}
+output{font-variant-numeric:tabular-nums}
+.big{font-size:2.2rem;font-weight:700;line-height:1.15}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.stats div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px}
+.stats b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums}
+.stats span{color:var(--mut);font-size:.875rem}
+.chip{display:inline-block;padding:4px 12px;border-radius:99px;border:1px solid currentColor;font-weight:600;font-size:.9rem}
+.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.95rem}
+th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;white-space:nowrap}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--mut);font-size:12px}
+.note{color:var(--mut);font-size:.9rem}
+.ai{border-left:4px solid var(--warn);padding:8px 12px;margin:14px 0;background:var(--card);border-radius:0 8px 8px 0;font-size:.95rem}
+footer{max-width:860px;margin:2rem auto;padding:0 16px 3rem;color:var(--mut);font-size:.9rem}
+</style>
+</head>
+<body>
+<header>
+  <a href="https://papers.qnfo.org/papers/institutionalized-unfalsifiability-as-an-evolutionarily-stable-strategy-in-scien">&larr; Read the paper</a>
+  <h1>Does testable science survive its own incentives?</h1>
+  <p class="lead">Researchers either publish a risky prediction or a flexible story that can't fail. Set the rewards and watch which habit spreads.</p>
+</header>
+<main>
+<div class="ai"><b>A toy model, not a measurement.</b> The rewards are the paper's illustrative numbers, and the paper is AI-written with no recorded human review. The page shows what the maths implies, not what science is doing.</div>
+
+<section class="card" aria-labelledby="try">
+  <h2 id="try">1. Set the incentives</h2>
+  <div class="row" role="group" aria-label="Presets">
+    <button data-preset="paper">Paper baseline</button>
+    <button data-preset="flip">At the flip point</button>
+    <button data-preset="pilot">Registry pilot (b 2.4)</button>
+    <button data-preset="harsh">Harsh failure cost</button>
+  </div>
+  <label for="b">Reward for a correct prediction <small>b</small>: <output id="bo"></output></label>
+  <input id="b" type="range" min="0.5" max="6" step="0.05" value="2">
+  <label for="c">Cost of a failed prediction <small>c</small>: <output id="co"></output></label>
+  <input id="c" type="range" min="0" max="4" step="0.1" value="1">
+  <label for="s">Reward for a story that can't fail <small>s</small>: <output id="so"></output></label>
+  <input id="s" type="range" min="0" max="4" step="0.1" value="1">
+  <label for="p">Chance a prediction is right <small>p</small>: <output id="po"></output></label>
+  <input id="p" type="range" min="5" max="95" step="1" value="60">
+  <label for="x0">Researchers who start out testable: <output id="xo"></output></label>
+  <input id="x0" type="range" min="1" max="50" step="1" value="10">
+</section>
+
+<section class="card" aria-live="polite" aria-labelledby="res">
+  <h2 id="res">2. What happens</h2>
+  <div class="big" id="head"></div>
+  <p id="verdict" style="margin:.3rem 0"></p>
+  <div class="stats">
+    <div><b id="sF"></b><span>payoff, testable</span></div>
+    <div><b id="sP"></b><span>payoff, untestable</span></div>
+    <div><b id="sT"></b><span>accuracy needed (p*)</span></div>
+    <div><b id="sB"></b><span>reward to flip it (b)</span></div>
+  </div>
+  <svg id="traj" viewBox="0 0 640 260" role="img" aria-label="Share of testable researchers over generations"></svg>
+  <p class="note">Line: the paper's equation. Dots: 1,000 simulated researchers copying better-paid peers.</p>
+</section>
+
+<section class="card" aria-labelledby="lev">
+  <h2 id="lev">3. The policy lever</h2>
+  <p>How accurate must predictions be for testing to pay, at each reward? Above the curve testable science wins.</p>
+  <svg id="lever" viewBox="0 0 640 240" role="img" aria-label="Required accuracy against prediction reward"></svg>
+</section>
+
+<section class="card" aria-labelledby="chk">
+  <h2 id="chk">4. Reproduces the paper</h2>
+  <div class="scroll"><table id="chkT"></table></div>
+</section>
+
+<section class="card" aria-labelledby="lim">
+  <h2 id="lim">Limits</h2>
+  <ul>
+    <li>Two strategies, fixed payoffs, no networks, no differences between researchers. The paper lists these as open questions.</li>
+    <li>The central prediction (a higher b raises the share of registered predictions) is untested. Technology readiness level 2.</li>
+    <li>A rise in b could also change s or c in real life, which would confound any pilot.</li>
+  </ul>
+</section>
+</main>
+<footer>
+  Companion to <a href="https://papers.qnfo.org/papers/institutionalized-unfalsifiability-as-an-evolutionarily-stable-strategy-in-scien">the QNFO paper</a> &middot;
+  <a href="https://github.com/QNFO/paper-demo-unfalsifiability-ess">source and tests</a> &middot; MIT licence
+</footer>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
